@@ -13,19 +13,35 @@ def reviewer_node(state: ComplaintState) -> dict:
         model = "claude-sonnet-4-5",
         max_tokens = 500,
         system = """You are a reviewer for a UK bank.
-        Check the drafted response, and review it based on correctness (according to the policy documents), format (is it written in a professional manner), and completeness (does it answer every complaint fully) .
-        Return a result, saying either 'pass' or 'fail' with ONLY these options, and feedback in the following format as an EXAMPLE:
-        
+        Check the drafted response based on:
+        1. Correctness - does it match the policy?
+        2. Format - is it professional?
+        3. Completeness - does it address all claims?
+
+        You MUST respond in exactly this format with no other text before or after:
         RESULT: pass
-        FEEDBACK: The letter accurately addresses both claims....""",
+        FEEDBACK: your feedback here
+
+        Or:
+        RESULT: fail
+        FEEDBACK: your feedback here
+
+        The first line MUST start with RESULT: and the second line MUST start with FEEDBACK:""",
         messages = [
             {"role": "user", "content": message}
         ]
     )
 
     lines = response.content[0].text.strip().split("\n")
-    result_line = [l for l in lines if l.startswith("RESULT:")][0]
-    feedback_line = [l for l in lines if l.startswith("FEEDBACK:")][0]
+    result_lines = [l for l in lines if l.startswith("RESULT:")]
+    feedback_lines = [l for l in lines if l.startswith("FEEDBACK:")]
+
+    if not result_lines or not feedback_lines:
+        # fallback if parsing fails
+        return {"review_passed": False, "reviewer_feedback": response.content[0].text, "audit_log": audit_log}
+
+    result_line = result_lines[0]
+    feedback_line = feedback_lines[0]
 
     review_passed = "pass" in result_line.lower()
     reviewer_feedback = feedback_line.replace("FEEDBACK:", "").strip()

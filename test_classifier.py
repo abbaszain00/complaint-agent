@@ -1,5 +1,7 @@
 from graph import app
 
+config = {"configurable": {"thread_id": "complaint_001"}}
+
 initial_state = {
     "complaint_letter": "I have been charged twice for the same transaction on 15th June. I want a refund immediately.",
     "classification": None,
@@ -12,13 +14,19 @@ initial_state = {
     "review_passed": None
 }
 
-result = app.invoke(initial_state)
+# first run - pauses at human_gate
+print("=== RUNNING PIPELINE ===")
+result = app.invoke(initial_state, config)
+print(f"\nPaused for human review.")
+print(f"Draft response:\n{result['draft_response']}")
+
+# simulate human approving
+print("\n=== HUMAN APPROVING ===")
+app.update_state(config, {"human_review": True})
+result = app.invoke(None, config)
 
 print("\n=== FINAL RESULT ===")
-print(f"Classification: {result['classification']}")
-print(f"Draft Response: {result['draft_response']}")
-print(f"Review Passed: {result['review_passed']}")
-print(f"Reviewer Feedback: {result['reviewer_feedback']}")
+print(f"Draft Response:\n{result['draft_response']}")
 print(f"\nAudit Log:")
 for entry in result['audit_log']:
     print(f"  - {entry}")
