@@ -12,7 +12,7 @@ def extractor_node(state: ComplaintState) -> dict:
         model = "claude-haiku-4-5-20251001",
         max_tokens = 500,
         system = """You are an claim extractor for a UK bank.
-        Extract the specifdic claims made by the customer in the complaint letter.
+        Extract the specific claims made by the customer in the complaint letter.
         Return each claim on a new line, nothing else. No numbering, no bullets, no explanation.""",
         messages = [
             {"role": "user", "content": state["complaint_letter"]}
